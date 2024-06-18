@@ -1,4 +1,5 @@
 import Livro from '#models/livro'
+import { LivroValidator } from '#validators/livro'
 import type { HttpContext } from '@adonisjs/core/http'
 
 
@@ -18,14 +19,13 @@ export default class LivrosController {
     }
 
     async store({ request }: HttpContext) {
-        const dados = request.only(['titulo', 'sinopse'])
-
+        const dados = await request.validate({ schema: LivroValidator })
         return await Livro.create(dados)
     }
 
     async update({ params, request }: HttpContext) {
         const produto = await Livro.findOrFail(params.id)
-        const dados = request.only(['titulo', 'sinopse'])
+        const dados = await request.validate({ schema: LivroValidator })
 
         produto.merge(dados)
         return await produto.save()

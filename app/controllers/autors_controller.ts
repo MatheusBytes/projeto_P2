@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
 import Autor from "#models/autor"
+import { AutorValidator } from '#validators/autor'
 
 export default class AutorsController {
 
@@ -16,15 +17,14 @@ export default class AutorsController {
     }
 
     async store({ request }: HttpContext) {
-        const dados = request.only(['nome', 'biografia'])
-
-
+        const dados = await request.validate({ schema: AutorValidator })
         return await Autor.create(dados)
+
     }
 
     async update({ params, request }: HttpContext) {
         const produto = await Autor.findOrFail(params.id)
-        const dados = request.only([])
+        const dados = await request.validate({ schema: AutorValidator })
 
         produto.merge(dados)
         return await produto.save()

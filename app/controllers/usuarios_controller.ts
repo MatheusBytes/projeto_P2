@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
 import Usuario from "#models/usuario"
+import { UsuarioValidator } from '#validators/usuario'
 
 export default class UsuariosController {
 
@@ -17,21 +18,31 @@ export default class UsuariosController {
         return await Usuario.findOrFail(params.id)
     }
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['nome', 'email',])
-
-
-        return await Usuario.create(dados)
+    async store({ request, response }: HttpContext) {
+        try {
+            const dados = await request.validate({ schema: UsuarioValidator })
+            const usuario = await Usuario.create(dados)
+            return usuario
+        } catch (error) {
+            if (error.code === '23505') {
+                return response.status(400).send({ message: 'Este email já está em uso.' })
+            }
+            return response.status(400).send({ message: error.messages })
+        }
     }
 
-    async update({ params, request }: HttpContext) {
-        const produto = await Usuario.findOrFail(params.id)
-        const dados = request.only([])
-
-        produto.merge(dados)
-        return await produto.save()
-
-    }
+    async update({ params, request, response }: HttpContext) {
+        try {
+          const usuario = await Usuario.findOrFail(params.id)
+          const dados = await request.validate({ schema: UsuarioValidator })
+          usuario.merge(dados)
+          await usuario.save()
+          return usuario
+        } catch (error) {
+          return response.status(400).send({ message: error.messages })
+        }
+      }
+    
 
     async destroy({ params }: HttpContext) {
         const produto = await Usuario.findOrFail(params.id)

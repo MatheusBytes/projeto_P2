@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
 import Emprestimo from "#models/emprestimo"
+import { EmprestimoValidator } from '#validators/emprestimo'
 
 export default class EmprestimosController {
     async index({ request }: HttpContext) {
@@ -17,15 +18,13 @@ export default class EmprestimosController {
     }
 
     async store({ request }: HttpContext) {
-        const dados = request.only(['status',])
-
-
+        const dados = await request.validate({ schema: EmprestimoValidator })
         return await Emprestimo.create(dados)
     }
 
     async update({ params, request }: HttpContext) {
         const produto = await Emprestimo.findOrFail(params.id)
-        const dados = request.only([])
+        const dados = await request.validate({ schema: EmprestimoValidator })
 
         produto.merge(dados)
         return await produto.save()
